@@ -66,3 +66,96 @@ python -m unittest balance/test_balance_observer.py
 ## License
 
 [License](LICENSE.txt)
+
+## Design Pattern Implementation: Strategy Pattern
+
+### Why We Chose the Strategy Pattern
+
+The Strategy pattern was selected to handle different transaction categorization and analysis strategies in the Personal Finance Manager. As users track their finances, they need flexible ways to categorize and analyze their spending patterns—some may prefer category-based analysis, others time-based, and some may want custom rules for tax purposes or budgeting goals.
+
+The Strategy pattern allows us to:
+- Define a family of interchangeable algorithms for transaction analysis
+- Encapsulate each algorithm independently
+- Make algorithms interchangeable at runtime without modifying client code
+- Adhere to the Open/Closed Principle (open for extension, closed for modification)
+
+### Where It Fits Into the App
+
+The Strategy pattern is integrated into the transaction analysis module:
+
+**Location:** `analysis/transaction_analyzer.py`
+
+**Components:**
+- **Context:** `TransactionAnalyzer` class that uses a strategy to analyze transactions
+- **Strategy Interface:** `AnalysisStrategy` abstract base class defining the common interface
+- **Concrete Strategies:**
+  - `CategoryAnalysisStrategy` – Groups transactions by category (food, rent, entertainment, etc.)
+  - `TimeBasedAnalysisStrategy` – Analyzes spending patterns over time periods
+  - `BudgetComparisonStrategy` – Compares actual spending against budget limits
+
+**Usage Example:**
+```python
+# Initialize analyzer with a strategy
+analyzer = TransactionAnalyzer(CategoryAnalysisStrategy())
+report = analyzer.analyze(transactions)
+
+# Switch strategy at runtime
+analyzer.set_strategy(TimeBasedAnalysisStrategy())
+monthly_report = analyzer.analyze(transactions)
+```
+
+### How It Improves Flexibility, Testability, and Scalability
+
+#### Flexibility
+- **Runtime Strategy Switching:** Users can change analysis methods on-the-fly without restarting the application
+- **Easy Configuration:** Different user profiles can have different default strategies
+- **No Conditional Logic:** Eliminates complex if/else chains for different analysis types
+
+#### Testability
+- **Isolated Testing:** Each strategy can be tested independently without dependencies on other strategies
+- **Mock Strategies:** Easy to create mock strategies for testing the analyzer context
+- **Single Responsibility:** Each strategy has one clear purpose, making unit tests more focused and maintainable
+
+**Example Test:**
+```python
+def test_category_analysis_strategy():
+    strategy = CategoryAnalysisStrategy()
+    transactions = [Transaction("Food", 50), Transaction("Food", 30)]
+    result = strategy.execute(transactions)
+    assert result["Food"] == 80
+```
+
+#### Scalability
+- **Add New Strategies:** New analysis methods can be added without modifying existing code
+- **Plugin Architecture:** Strategies can be loaded dynamically, supporting third-party extensions
+- **Parallel Processing:** Different strategies can run concurrently for the same transaction set
+- **Reusability:** Strategies can be reused across different parts of the application (reports, dashboards, exports)
+
+**Future Extensions:**
+- `TaxOptimizationStrategy` – For tax deduction identification
+- `InvestmentAnalysisStrategy` – For analyzing investment transactions
+- `SavingsGoalStrategy` – For tracking progress toward savings goals
+- `CustomRuleStrategy` – User-defined rules for personalized analysis
+
+### Implementation Benefits Demonstrated
+
+1. **Before Strategy Pattern (Rigid):**
+   ```python
+   def analyze_transactions(transactions, analysis_type):
+       if analysis_type == "category":
+           # Category logic here
+       elif analysis_type == "time":
+           # Time logic here
+       elif analysis_type == "budget":
+           # Budget logic here
+       # Adding new types requires modifying this function
+   ```
+
+2. **After Strategy Pattern (Flexible):**
+   ```python
+   analyzer = TransactionAnalyzer(strategy)
+   report = analyzer.analyze(transactions)
+   # Adding new strategies requires zero changes to existing code
+   ```
+
+This pattern exemplifies good software design by promoting loose coupling, high cohesion, and adherence to SOLID principles, making the Personal Finance Manager more maintainable and extensible
